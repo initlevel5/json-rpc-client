@@ -1,4 +1,4 @@
-# json_rpc_client
+# json-rpc-client
 
 This is a simple REST API client that provides access to JSON-RPC services.
 
@@ -39,4 +39,4 @@ This is a simple REST API client that provides access to JSON-RPC services.
 #### Todo:
 - [ ] Use url parser
 - [ ] Use JSON serialization
-- [ ] Grow buffers dynamicaly
+- [ ] Grow recv buffer dynamicaly
