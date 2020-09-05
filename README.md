@@ -11,9 +11,11 @@ This is a simple REST API client that provides access to JSON-RPC services.
 
 2. Build and run client application
     ```
-    $ cd ../ && make && ./client
+    $ cd ../ && make
 
-	...
+    ...
+
+    $ ./client -h localhost -p 8000 -u /api/json/v2 -m Test.SayHello -a '{"Name": "Jesse Pinkman"}'
 	
 	request:
 	POST /api/json/v2 HTTP/1.1

@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -W -Wall -pedantic -O3 -std=c99
+CFLAGS = -W -Wall -Werror -pedantic -O3 -std=gnu99
 
 OBJS = \
 	json_rpc.o \
