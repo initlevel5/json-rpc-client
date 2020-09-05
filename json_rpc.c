@@ -12,8 +12,8 @@
 extern int h_errno;
 
 static char *http_header_templ = "POST %s HTTP/1.1\r\nHost: %s\r\nAccept: \
-application/json; charset=UTF-8\r\nConnection: close\r\nContent-Type: \
-application/json; charset=UTF-8\r\nContent-Length: %d\r\n\r\n";
+application/json\r\nConnection: close\r\nContent-Type: application/json\r\n\
+Content-Length: %d\r\n\r\n";
 
 static char *jsonrpc_templ = "{\"jsonrpc\": \"2.0\", \"method\": \"%s\", \
 \"params\": %s, \"id\": %d}";

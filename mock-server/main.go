@@ -28,14 +28,14 @@ func (c *HttpConn) Close() error {
 	return nil
 }
 
-type Test struct{}
+type Test struct {}
 
 type Args struct {
 	Name string
 }
 
 func (t *Test) SayHello(args *Args, reply *string) error {
-	*reply = "Hello " + args.Name
+	*reply = "Hello, " + args.Name + "!"
 	return nil
 }
 
@@ -59,7 +59,7 @@ func main() {
 			w.Header().Set("Content-type", "application/json")
 			w.WriteHeader(200)
 
-			if err2 := srv.ServeRequest(codec) ; err2 != nil {
+			if err := srv.ServeRequest(codec); err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
