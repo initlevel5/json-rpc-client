@@ -9,13 +9,14 @@ This is a simple REST API client that provides access to JSON-RPC services.
     cd mock-server && go run main.go
     ```
 
-2. Build and run client application
+2. Build client application
     ```
     $ cd ../ && make
+    ```
 
-    ...
-
-    $ ./client -h localhost -p 8000 -u /api/json/v2 -m Test.SayHello -a '{"Name": "Jesse Pinkman"}'
+3. Send a request to the JSON-RPC server (localhost)
+    ```
+    $ ./client -p 8000 -u /api/json/v2 -m Test.SayHello -a '{"Name": "Jesse Pinkman"}'
 	
 	request:
 	POST /api/json/v2 HTTP/1.1
