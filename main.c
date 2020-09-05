@@ -13,7 +13,10 @@
 #include "json_rpc.h"
 
 #define BUF_SIZE (1024)
-#define ID (0)
+#define HOST_SIZE (64)
+#define PATH_SIZE (32)
+#define METHOD_SIZE (32)
+#define PARAM_SIZE (64)
 
 #define STR_CPY(dst, src) do {                                                 \
   strncpy((dst), (src), sizeof((dst)) - 1);                                    \
@@ -21,10 +24,11 @@
 } while (0)
 
 int main(int argc, char const *argv[]) {
-  char *resp = NULL;
-  char host[32], path[32], method[32], params[32];
   int id, opt, mfound = 0, port;
-
+  char host[HOST_SIZE], path[PATH_SIZE],
+       method[METHOD_SIZE], params[PARAM_SIZE],
+       *resp = NULL;
+  
   /* set defaults */
   STR_CPY(host, "localhost");
   port = 80;
