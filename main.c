@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2020 initlevel5
  *
- * This is a simple REST API client that
- * provides access to JSON-RPC services.
+ * This is a simple REST API client that provides access to JSON-RPC services.
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +35,7 @@ int main(int argc, char const *argv[]) {
   STR_CPY(params, "[]");
   id = 0;
   
+  /* get options */
   while ((opt = getopt(argc, (char *const *)argv, "h:p:u:m:a:i:")) != -1) {
     switch (opt) {
       case 'h': STR_CPY(host, optarg); break;
@@ -51,27 +50,26 @@ int main(int argc, char const *argv[]) {
         exit(EXIT_FAILURE);
     }
   }
-
   if (mfound == 0) {
     fprintf(stderr, "method name required");
     exit(EXIT_FAILURE);
   }
 
+  /* allocate buffer for response */
   if ((resp = malloc(BUF_SIZE)) == NULL) exit(EXIT_FAILURE);
 
+  /* Send a request to the JSON-RPC server */ 
   if (json_rpc_request(host, port, path,
                        method, params, id,
                        resp, BUF_SIZE) != 0) {
     fprintf(stderr, "json_rpc_request() failed\n");
+    free(resp);
     exit(EXIT_FAILURE);
   }
 
   printf("response:\n%s\n", resp);
 
   free(resp);
-
-  (void)argc;
-  (void)argv;
 
   return EXIT_SUCCESS;
 }

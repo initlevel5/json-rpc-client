@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 initlevel5
+ *
+ */
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -146,10 +150,12 @@ int json_rpc_request(const char *host, int port, const char *path,
   printf("request:\r\n%s\r\n\r\n", buf);
 #endif
 
+  /* send request */
   if ((rc = do_write(fd, buf)) != 0) goto _end;
   
   memset(resp, 0, resp_sz);
   
+  /* get response */
   rc = do_read(fd, resp, resp_sz);
 
 _end:
