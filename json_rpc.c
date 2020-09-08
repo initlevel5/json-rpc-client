@@ -2,6 +2,7 @@
  * Copyright (c) 2020 initlevel5
  *
  */
+#include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -13,7 +14,9 @@
 
 #include "json_rpc.h"
 
-extern int h_errno;
+#define ST_HOST 0
+#define ST_PORT 1
+#define ST_PATH 2
 
 static char *http_header_templ = "POST %s HTTP/1.1\r\nHost: %s\r\nAccept: \
 application/json\r\nConnection: close\r\nContent-Type: application/json\r\n\
@@ -25,7 +28,7 @@ static char *jsonrpc_templ = "{\"jsonrpc\": \"2.0\", \"method\": \"%s\", \
 #define HTTP_HEADER_LEN (strlen(http_header_templ) - 6)
 #define JSONRPC_TEMPL_LEN (strlen(jsonrpc_templ) - 6)
 
-static int do_connect(const char *host, int port) {
+static int do_connect(const char *host, unsigned int port) {
   int fd = -1, err;
   struct sockaddr_in addr;
   int addr_len = sizeof(addr);
@@ -100,24 +103,115 @@ static int do_read(int fd, char *buf, int buf_sz) {
   return err != 0 ? -1 : 0;
 }
 
-int json_rpc_request(const char *host, int port, const char *path,
+static int parse_address(const char *addr,
+                         char **host, unsigned int *port, char **path) {
+  char *p = NULL, *phost = NULL, *pport = NULL, *ppath = NULL, prev = '/';
+  int state = ST_HOST;
+  size_t len;
+
+  if (addr == NULL || host == NULL || port == NULL || path == NULL) return -1;
+
+  if ((p = strstr(addr, "://")) != NULL) {
+    if (strncmp(addr, "http", p - addr) != 0) return -1;
+    p += 3;
+  } else p = (char *)addr;
+
+  if (*p == '\0') return -1;
+
+  phost = p;
+
+  while (*p) {
+    if (isspace((int)*p)) return -1;
+
+    switch (state) {
+      case ST_HOST:
+        if (*p == ':' || *p == '/') {
+          if (p == phost) return -1;
+          if (*p == ':') {
+            pport = p + 1;
+            state = ST_PORT;
+          } else if (*p == '/') {
+            ppath = p + 1;
+            state = ST_PATH;
+          }
+          *p++ = '\0';
+          continue;
+        }
+        break;
+      case ST_PORT:
+        if (!isdigit((int)*p)) {
+          if (*p == '/') {
+            *p = '\0';
+            ppath = ++p;
+            state = ST_PATH;
+            continue;
+          }
+          return -1;
+        }
+        break;
+      case ST_PATH:
+        if ((!isalpha((int)*p) && !isdigit((int)*p) && *p != '/') ||
+            (*p == '/' && prev == '/')) return -1;
+        prev = *p;
+        break;
+    }
+
+    if (!*p) break;
+    p++;
+  }
+
+  len = strlen(phost);
+  if ((*host = malloc(len + 1)) == NULL) return -1;
+  memcpy(*host, phost, len);
+  (*host)[len] = '\0';
+
+  if (pport) {
+    if (!isdigit((int)*pport) || (*port = atoi(pport)) >= 0xffffUL) return -1;
+  } else {
+    *port = 80;
+  }
+
+  if (!path) return -1;
+
+  len = strlen(ppath);
+  if ((*path = malloc(len + 2)) == NULL) return -1;
+  **path = '/';
+  memcpy(*path + 1, ppath, len);
+  (*path)[len + 1] = '\0';
+
+#if 0
+  printf("%s\n%u\n%s\n", *host, *port, *path);
+#endif
+
+  return 0;
+}
+
+int json_rpc_request(const char *addr,
                      const char *method, const char *params, int id,
                      char *resp, int resp_sz) {
-  int fd, rc = 0;
+  int fd = -1, rc = 0;
+  unsigned int port = 0;
   size_t len, jsonrpc_len, header_len;
-  char *buf = NULL, *s = NULL;
+  char *host = NULL, *path = NULL, *buf = NULL, *s = NULL;
 
-  if (host == NULL || port <= 0 || path == NULL ||
+  if (addr == NULL ||
       method == NULL || params == NULL ||
       resp == NULL || resp_sz <= 0) {
     printf("json_rpc_request(): invalid argument\n");
     return -1;
   }
 
+  /* parse the address string */
+  if (parse_address(addr, &host, &port, &path) != 0) {
+    printf("json_rpc_request(): can't parse address\n");
+    rc = -1;
+    goto _end;
+  }
+
   /* connect to the JSON-RPC service */
   if ((fd = do_connect(host, port)) == -1) return -1;
 
-  /* calculate andcheck length of the request */
+  /* calculate and check length of the request */
   jsonrpc_len = JSONRPC_TEMPL_LEN +
                 strlen(method) + strlen(params) +
                 snprintf(NULL, 0, "%d", id);
@@ -159,6 +253,8 @@ int json_rpc_request(const char *host, int port, const char *path,
   rc = do_read(fd, resp, resp_sz);
 
 _end:
+  free(host);
+  free(path);
   free(buf);
   free(s);
   close(fd);

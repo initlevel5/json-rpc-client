@@ -1,6 +1,6 @@
 # json-rpc-client
 
-This is a simple REST API client that provides access to JSON-RPC services.
+This is a simple, dependency free REST API client that provides access to JSON-RPC services.
 
 #### Usage
 
@@ -14,9 +14,9 @@ This is a simple REST API client that provides access to JSON-RPC services.
     $ cd ../ && make
     ```
 
-3. Send a request to the JSON-RPC server (localhost)
+3. Send a request to the JSON-RPC server
     ```
-    $ ./client -p 8000 -u /api/json/v2 -m Test.SayHello -a '{"Name": "Jesse Pinkman"}'
+    $ ./client -u http://localhost:8000/api/json/v2 -m Test.SayHello -a '{"Name":"Jesse Pinkman"}'
 	
 	request:
 	POST /api/json/v2 HTTP/1.1
@@ -39,7 +39,8 @@ This is a simple REST API client that provides access to JSON-RPC services.
 
     ```
 
-#### Todo:
-- [ ] Use url parser
-- [ ] Use JSON serialization
+#### TODO:
+- [x] Url parser
 - [ ] Grow recv buffer dynamicaly
+- [ ] Timeouts
+- [ ] Tests
