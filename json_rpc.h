@@ -23,14 +23,15 @@ extern "C" {
  *
  *  char buf[1024];
  *
- *  if (json_rpc_request("localhost", 8000, "/api/json/v2", "sysinfo", "[]", 0,
- *                       buf, sizeof(buf)) != 0) {
+ *  if (json_rpc_request("http://localhost:8000/api/json/v2",
+ *                       "sysinfo", "[]", 0,
+ *                       buf, sizeof buf) != 0) {
  *    exit(EXIT_FAILURE);
  *  }
  *
  *  printf("response:\n%s\n", buf);
  */
-int json_rpc_request(const char *host, int port, const char *path,
+int json_rpc_request(const char *addr,
                      const char *method, const char *params, int id,
                      char *resp, int resp_sz);
 #ifdef __cplusplus
