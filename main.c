@@ -1,7 +1,8 @@
 /*
  * Copyright (c) 2020 initlevel5
  *
- * This is a simple REST API client that provides access to JSON-RPC services.
+ * This is a simple, dependency free REST API client that provides access 
+ * to JSON-RPC services.
  */
 #include <stdio.h>
 #include <stdlib.h>

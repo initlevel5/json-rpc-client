@@ -16,7 +16,7 @@ This is a simple, dependency free REST API client that provides access to JSON-R
 
 3. Send a request to the JSON-RPC server
     ```
-    $ ./client -u http://localhost:8000/api/json/v2 -m Test.SayHello -a '{"Name":"Jesse Pinkman"}'
+    $ ./client -a http://localhost:8000/api/json/v2 -m Test.SayHello -p '{"Name":"Jesse Pinkman"}'
 	
 	request:
 	POST /api/json/v2 HTTP/1.1

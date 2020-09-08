@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2020 initlevel5
- *
  */
 #include <ctype.h>
 #include <errno.h>
@@ -103,6 +102,15 @@ static int do_read(int fd, char *buf, int buf_sz) {
   return err != 0 ? -1 : 0;
 }
 
+/*
+ * Address format: [PROTO://]HOST[:PORT][PATH]
+ *
+ * PROTO should be 'http' only (if defined).
+ * HOST could be IPv4 address or a host name.
+ * Default values for PORT and PATH are 80 and '/', respectively.
+ *
+ * Returns -1 if parse error occured, otherwise 0.
+ */
 static int parse_address(const char *addr,
                          char **host, unsigned int *port, char **path) {
   char *p = NULL, *phost = NULL, *pport = NULL, *ppath = NULL, prev = '/';
@@ -112,7 +120,7 @@ static int parse_address(const char *addr,
   if (addr == NULL || host == NULL || port == NULL || path == NULL) return -1;
 
   if ((p = strstr(addr, "://")) != NULL) {
-    if (strncmp(addr, "http", p - addr) != 0) return -1;
+    if ((len = p - addr) != 4 || strncmp(addr, "http", len)) return -1;
     p += 3;
   } else p = (char *)addr;
 
@@ -134,17 +142,16 @@ static int parse_address(const char *addr,
             ppath = p + 1;
             state = ST_PATH;
           }
-          *p++ = '\0';
-          continue;
+          *p = '\0';
         }
         break;
       case ST_PORT:
         if (!isdigit((int)*p)) {
           if (*p == '/') {
             *p = '\0';
-            ppath = ++p;
+            ppath = p + 1;
             state = ST_PATH;
-            continue;
+            break;
           }
           return -1;
         }
@@ -156,7 +163,8 @@ static int parse_address(const char *addr,
         break;
     }
 
-    if (!*p) break;
+    if (!*(p + 1)) break;
+
     p++;
   }
 
@@ -171,9 +179,7 @@ static int parse_address(const char *addr,
     *port = 80;
   }
 
-  if (!path) return -1;
-
-  len = strlen(ppath);
+  len = ppath ? strlen(ppath) : 0;
   if ((*path = malloc(len + 2)) == NULL) return -1;
   **path = '/';
   memcpy(*path + 1, ppath, len);
@@ -181,6 +187,7 @@ static int parse_address(const char *addr,
 
 #if 0
   printf("%s\n%u\n%s\n", *host, *port, *path);
+  return -1;
 #endif
 
   return 0;
