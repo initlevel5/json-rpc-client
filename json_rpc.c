@@ -128,39 +128,44 @@ static int parse_address(const char *addr,
 
   phost = p;
 
-  while (*p) {
-    if (isspace((int)*p)) return -1;
-
-    switch (state) {
-      case ST_HOST:
-        if (*p == ':' || *p == '/') {
-          if (p == phost) return -1;
-          if (*p == ':') {
-            pport = p + 1;
-            state = ST_PORT;
-          } else if (*p == '/') {
-            ppath = p + 1;
-            state = ST_PATH;
-          }
-          *p = '\0';
-        }
-        break;
-      case ST_PORT:
-        if (!isdigit((int)*p)) {
-          if (*p == '/') {
+  for (;;) {
+    /* remove whitespaces */
+    if (isspace((int)*p)) {
+      char *dst = p, *src = p + 1;
+      while((*dst++ = *src++));
+      p--;
+    } else {
+      switch (state) {
+        case ST_HOST:
+          if (*p == ':' || *p == '/') {
+            if (p == phost) return -1;
+            if (*p == ':') {
+              pport = p + 1;
+              state = ST_PORT;
+            } else if (*p == '/') {
+              ppath = p + 1;
+              state = ST_PATH;
+            }
             *p = '\0';
-            ppath = p + 1;
-            state = ST_PATH;
-            break;
+          } else if (!isalnum((int)*p) && *p != '-' && *p != '.') return -1;
+          break;
+        case ST_PORT:
+          if (!isdigit((int)*p)) {
+            if (*p == '/') {
+              *p = '\0';
+              ppath = p + 1;
+              state = ST_PATH;
+              break;
+            }
+            return -1;
           }
-          return -1;
-        }
-        break;
-      case ST_PATH:
-        if ((!isalpha((int)*p) && !isdigit((int)*p) && *p != '/') ||
-            (*p == '/' && prev == '/')) return -1;
-        prev = *p;
-        break;
+          break;
+        case ST_PATH:
+          if ((!isalpha((int)*p) && !isdigit((int)*p) && *p != '/') ||
+              (*p == '/' && prev == '/')) return -1;
+          prev = *p;
+          break;
+      }
     }
 
     if (!*(p + 1)) break;
@@ -168,19 +173,23 @@ static int parse_address(const char *addr,
     p++;
   }
 
-  len = strlen(phost);
-  if ((*host = malloc(len + 1)) == NULL) return -1;
-  memcpy(*host, phost, len);
-  (*host)[len] = '\0';
-
   if (pport) {
     if (!isdigit((int)*pport) || (*port = atoi(pport)) >= 0xffffUL) return -1;
   } else {
     *port = 80;
   }
 
+  len = strlen(phost);
+  if ((*host = malloc(len + 1)) == NULL) return -1;
+  memcpy(*host, phost, len);
+  (*host)[len] = '\0';
+
   len = ppath ? strlen(ppath) : 0;
-  if ((*path = malloc(len + 2)) == NULL) return -1;
+  if ((*path = malloc(len + 2)) == NULL) {
+    free(*host);
+    *host = NULL;
+    return -1;
+  }
   **path = '/';
   memcpy(*path + 1, ppath, len);
   (*path)[len + 1] = '\0';
