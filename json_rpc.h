@@ -11,8 +11,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*
- * This function connects to the JSON-RPC service and invokes the remote method
- * 'method' with the given parameters 'params'.
+ * This function connects to the JSON-RPC service with 'timeout' in seconds
+ * and invokes the remote method 'method' with the given parameters 'params'.
  *
  * When the response is received, HTTP header and body will be copied to
  * response buffer 'resp'.
@@ -33,7 +33,7 @@ extern "C" {
  */
 int json_rpc_request(const char *addr,
                      const char *method, const char *params, int id,
-                     char *resp, int resp_sz);
+                     char *resp, int resp_sz, int timeout);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

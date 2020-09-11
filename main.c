@@ -15,6 +15,7 @@
 #define ADDR_SIZE (256)
 #define METHOD_SIZE (32)
 #define PARAM_SIZE (64)
+#define CONN_TIMEOUT (5)
 
 #define STR_CPY(dst, src) do {                                                 \
   strncpy((dst), (src), sizeof((dst)) - 1);                                    \
@@ -22,14 +23,9 @@
 } while (0)
 
 int main(int argc, char const *argv[]) {
-  int id, opt;
-  char addr[ADDR_SIZE], method[METHOD_SIZE], params[PARAM_SIZE], *resp = NULL;
-  
-  /* set defaults */
-  STR_CPY(addr, "http://localhost/");
-  *method = '\0';
-  STR_CPY(params, "[]");
-  id = 0;
+  int id = 0, opt;
+  char addr[ADDR_SIZE] = "http://localhost/",
+       method[METHOD_SIZE] = {0}, params[PARAM_SIZE] = "[]", *resp = NULL;
   
   /* get options */
   while ((opt = getopt(argc, (char *const *)argv, "a:m:p:i:")) != -1) {
@@ -52,10 +48,10 @@ int main(int argc, char const *argv[]) {
   /* allocate buffer for response */
   if ((resp = malloc(BUF_SIZE)) == NULL) exit(EXIT_FAILURE);
 
-  /* Send a request to the JSON-RPC server */ 
+  /* send a request to the JSON-RPC server */ 
   if (json_rpc_request(addr,
                        method, params, id,
-                       resp, BUF_SIZE) != 0) {
+                       resp, BUF_SIZE, CONN_TIMEOUT) != 0) {
     fprintf(stderr, "json_rpc_request() failed\n");
     free(resp);
     exit(EXIT_FAILURE);
