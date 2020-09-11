@@ -25,7 +25,7 @@ extern "C" {
  *
  *  if (json_rpc_request("http://localhost:8000/api/json/v2",
  *                       "sysinfo", "[]", 0,
- *                       buf, sizeof buf) != 0) {
+ *                       buf, sizeof buf, 10) != 0) {
  *    exit(EXIT_FAILURE);
  *  }
  *

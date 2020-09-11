@@ -17,49 +17,49 @@
 #define PARAM_SIZE (64)
 #define CONN_TIMEOUT (5)
 
-#define STR_CPY(dst, src) do {                                                 \
-  strncpy((dst), (src), sizeof((dst)) - 1);                                    \
-  (dst)[sizeof((dst)) - 1] = '\0';                                             \
+#define STR_CPY(dst, src) do {                                                \
+    strncpy((dst), (src), sizeof((dst)) - 1);                                 \
+    (dst)[sizeof((dst)) - 1] = '\0';                                          \
 } while (0)
 
 int main(int argc, char const *argv[]) {
-  int id = 0, opt;
-  char addr[ADDR_SIZE] = "http://localhost/",
-       method[METHOD_SIZE] = {0}, params[PARAM_SIZE] = "[]", *resp = NULL;
-  
-  /* get options */
-  while ((opt = getopt(argc, (char *const *)argv, "a:m:p:i:")) != -1) {
-    switch (opt) {
-      case 'a': STR_CPY(addr, optarg); break;
-      case 'm': STR_CPY(method, optarg); break;
-      case 'p': STR_CPY(params, optarg); break;
-      case 'i': id = atoi(optarg); break;
-      default:
-        fprintf(stderr, "Usage: %s [-a] address [-m] method\
+    int id = 0, opt;
+    char addr[ADDR_SIZE] = "http://localhost/",
+         method[METHOD_SIZE] = {0}, params[PARAM_SIZE] = "[]", *resp = NULL;
+    
+    /* get options */
+    while ((opt = getopt(argc, (char *const *)argv, "a:m:p:i:")) != -1) {
+        switch (opt) {
+            case 'a': STR_CPY(addr, optarg); break;
+            case 'm': STR_CPY(method, optarg); break;
+            case 'p': STR_CPY(params, optarg); break;
+            case 'i': id = atoi(optarg); break;
+            default:
+                fprintf(stderr, "Usage: %s [-a] address [-m] method\
  [-p] params [-i] id\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+    if (strlen(method) == 0) {
+        fprintf(stderr, "method name required");
         exit(EXIT_FAILURE);
     }
-  }
-  if (strlen(method) == 0) {
-    fprintf(stderr, "method name required");
-    exit(EXIT_FAILURE);
-  }
 
-  /* allocate buffer for response */
-  if ((resp = malloc(BUF_SIZE)) == NULL) exit(EXIT_FAILURE);
+    /* allocate buffer for response */
+    if ((resp = malloc(BUF_SIZE)) == NULL) exit(EXIT_FAILURE);
 
-  /* send a request to the JSON-RPC server */ 
-  if (json_rpc_request(addr,
-                       method, params, id,
-                       resp, BUF_SIZE, CONN_TIMEOUT) != 0) {
-    fprintf(stderr, "json_rpc_request() failed\n");
+    /* send a request to the JSON-RPC server */ 
+    if (json_rpc_request(addr,
+                         method, params, id,
+                         resp, BUF_SIZE, CONN_TIMEOUT) != 0) {
+        fprintf(stderr, "json_rpc_request() failed\n");
+        free(resp);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("response:\n%s\n", resp);
+
     free(resp);
-    exit(EXIT_FAILURE);
-  }
 
-  printf("response:\n%s\n", resp);
-
-  free(resp);
-
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
