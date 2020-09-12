@@ -82,7 +82,7 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
         for (;;) {
             /* TODO if inerrupted with EINTR start timeout at time has already elapsed */
 
-            n = select(fd + 1, NULL, &wfds, NULL, &tv);
+            n = select(fd + 1, NULL, &wfds, NULL, timeout > 0 ? &tv : NULL);
 
             if (n == -1) {
                 err = errno;
