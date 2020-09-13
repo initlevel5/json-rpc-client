@@ -44,12 +44,14 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
     struct hostent *he = NULL;
     struct timeval tv = {timeout, 0};
 
+    /* create socket */
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         err = errno;
         printf("socket(): %s (%d)\n", strerror(err), err);
         return -1;
     }
 
+    /* lookup hostname to IPv4 address */
     if ((he = gethostbyname(host)) == NULL) {
         printf("gethostbyname(): %d\n", h_errno);
         goto _err;
@@ -60,6 +62,7 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
     addr.sin_port = htons(port);
     memcpy(&addr.sin_addr.s_addr, he->h_addr_list[0], he->h_length);
 
+    /* make socket non-blocking */
     if ((flags = fcntl(fd, F_GETFL, 0)) == -1 ||
         fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
         err = errno;
@@ -67,6 +70,7 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
         goto _err;
     }
 
+    /* try to connect to server */
     if (connect(fd, (struct sockaddr *)&addr, addr_len) != 0) {
         err = errno;
         if (err != EINPROGRESS) {
@@ -83,6 +87,7 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
             /* TODO if inerrupted with EINTR start timeout at time has already elapsed */
 
             n = select(fd + 1, NULL, &wfds, NULL, timeout > 0 ? &tv : NULL);
+            SO_SNDLOWAT
 
             if (n == -1) {
                 err = errno;
@@ -110,10 +115,10 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
         }
     }
 
-    if ((flags = fcntl(fd, F_GETFL, 0)) == -1 ||
-        fcntl(fd, F_SETFL, flags &= (~O_NONBLOCK)) == -1) {
+    /* connected successfully, resore socket flags */
+    if ((flags = fcntl(fd, F_GETFL, 0)) == -1) {
         err = errno;
-        printf("make blocking: %s (%d)", strerror(err), err);
+        printf("fcntl(): %s (%d)", strerror(err), err);
         goto _err;
     }
 
