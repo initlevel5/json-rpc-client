@@ -87,7 +87,6 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
             /* TODO if inerrupted with EINTR start timeout at time has already elapsed */
 
             n = select(fd + 1, NULL, &wfds, NULL, timeout > 0 ? &tv : NULL);
-            SO_SNDLOWAT
 
             if (n == -1) {
                 err = errno;
@@ -116,7 +115,7 @@ static int do_connect(const char *host, unsigned int port, int timeout) {
     }
 
     /* connected successfully, resore socket flags */
-    if ((flags = fcntl(fd, F_GETFL, 0)) == -1) {
+    if (fcntl(fd, F_SETFL, flags) == -1) {
         err = errno;
         printf("fcntl(): %s (%d)", strerror(err), err);
         goto _err;
